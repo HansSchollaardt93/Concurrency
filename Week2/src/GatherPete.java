@@ -1,13 +1,18 @@
 public class GatherPete extends Pete {
-
-	public GatherPete(String name, int id) {
-		super(name, id);
+	public static int availableGatherers = 0;
+	
+	public GatherPete(String name) {
+		super(name);
 	}
 
 	@Override
 	public void run() {
 		while (true) {
 			gather();
+			//Go to the Saint; check for meeting
+			gatherMutex.aqcuire();
+			
+			
 		}
 	}
 

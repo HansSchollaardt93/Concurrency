@@ -1,13 +1,16 @@
 public class WorkPete extends Pete {
 
-	public WorkPete(String name, int id) {
-		super(name, id);
+	public WorkPete(String name) {
+		super(name);
 	}
 
 	@Override
 	public void run() {
 		while (true) {
 			work();
+			//Go to the Saint; check for meeting
+			
+			
 		}
 	}
 
