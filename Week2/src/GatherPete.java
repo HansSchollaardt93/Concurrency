@@ -7,18 +7,14 @@ public class GatherPete extends Pete {
 	@Override
 	public void run() {
 		while (true) {
-			try {
-				gather();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
+			gather();
 		}
 	}
 
-	private void gather() throws InterruptedException {
+	private void gather() {
 		try {
-			System.out.println("GatherPete nr. " + id +" met naam "+ name + " is gathering");
+			System.out.println("GatherPete nr. " + id + " met naam " + name
+					+ " is gathering");
 			Thread.sleep((int) (Math.random() * 5000));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
