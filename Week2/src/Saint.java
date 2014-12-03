@@ -1,4 +1,3 @@
-
-public class Saint {
+public class Saint extends Thread{
 
 }
