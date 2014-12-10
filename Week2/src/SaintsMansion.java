@@ -7,18 +7,16 @@ public class SaintsMansion {
 	private Thread[] gatherpetes;
 	private Thread[] workerpetes;
 
-	private Semaphore gatherPeteMeeting, workPeteMeeting, workMutex, gatherMutex;
+	private Semaphore gatherPeteMeeting, workPeteMeeting, workMutex,
+			gatherMutex;
 
 	public SaintsMansion() {
 		gatherpetes = new Thread[NR_OF_GATHERPETES];
 		workerpetes = new Thread[NR_OF_WORKPETES];
 
 		createPeteThreads();
-		
-		
-		
-		
-		//Initialize Saint
+
+		// Initialize Saint
 		Saint saint = new Saint();
 		saint.start();
 	}
@@ -29,7 +27,7 @@ public class SaintsMansion {
 			gatherpetes[i].start();
 		}
 		for (int i = 0; i < NR_OF_WORKPETES; i++) {
-			workerpetes[i] = new GatherPete("Workerpete" + i);
+			workerpetes[i] = new WorkPete("Workerpete" + i);
 			workerpetes[i].start();
 		}
 

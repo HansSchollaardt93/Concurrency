@@ -1,35 +1,31 @@
-public class Saint extends Thread{
+public class Saint extends Thread {
 	public static boolean inMeeting = false;
-	
-	
+
 	@Override
 	public void run() {
-		while(true){
+		while (true) {
 			regenerateEnergy();
-			try{
+			// try{
 			/*
-			 * Verzameloverleg:  
-			 * Minimaal 3 werkpieten, minimaal 1 verzamelpiet beschikbaar
+			 * Verzameloverleg: Minimaal 3 werkpieten, minimaal 1 verzamelpiet
+			 * beschikbaar
 			 */
-			
-			//Signal pete's, invite first and send others back to work
-			
-			//Go have a GatherMeeting
-			
+
+			// Signal pete's, invite first and send others back to work
+
+			// Go have a GatherMeeting
+
 			/*
-			 * Werkoverleg:  
-			 * Minimaal 3 werkpieten, GEEN verzamelpiet beschikbaar
+			 * Werkoverleg: Minimaal 3 werkpieten, GEEN verzamelpiet beschikbaar
 			 */
-			
-			//Go have a WorkMeeting
-			
-			} catch (InterruptedException e){}
-			
+
+			// Go have a WorkMeeting
+
+			// } catch (InterruptedException e){}
+
 		}
 	}
 
-	
-	public void regenerateEnergy(){
-		
+	public void regenerateEnergy() {
 	}
 }

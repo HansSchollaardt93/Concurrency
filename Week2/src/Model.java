@@ -1,12 +1,11 @@
-
 public class Model {
 	private static Model model;
-	
-	private Model(){
-		
+
+	private Model() {
+
 	}
-	
-	public static Model getInstance(){
+
+	public static Model getInstance() {
 		if (model == null) {
 			return new Model();
 		}
