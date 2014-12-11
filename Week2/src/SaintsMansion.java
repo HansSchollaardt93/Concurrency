@@ -14,17 +14,20 @@ public class SaintsMansion {
 	private Thread[] workerpetes;
 
 	public Semaphore gatherPeteMeeting, workPeteMeeting, workMutex,
-			gatherMutex;
+			gatherMutex, saint;
 
 	public SaintsMansion() {
 		gatherpetes = new Thread[NR_OF_GATHERPETES];
 		workerpetes = new Thread[NR_OF_WORKPETES];
 
 		// initially no pete's to wait for
-		gatherPeteMeeting = new Semaphore(0, true);
-		workPeteMeeting = new Semaphore(0, true);
+		//TODO beschikbare permits???
+		gatherPeteMeeting = new Semaphore(NR_OF_GATHERPETES, true);
+		//TODO beschikbare permits???
+		workPeteMeeting = new Semaphore(NR_OF_WORKPETES, true);
 		workMutex = new Semaphore(1, true);
 		gatherMutex = new Semaphore(1, true);
+		saint = new Semaphore(1);
 
 		createPeteThreads();
 
@@ -55,22 +58,10 @@ public class SaintsMansion {
 		@Override
 		public void run() {
 			while (true) {
-				regenerateEnergy();
+//				regenerateEnergy();
 				attendGathering();
 				try {
-					if (availableGatherPetes == WORKPETES_NEEDED_GATHERING
-							&& availableWorkPetes == GATHERPETES_NEEDED_GATHERING) {
-
-						System.err.println("<---- START A MEETING!! ---->");
-
-						System.err.println("<---- END OF MEETING!! ---->");
-					} else {
-						// sleep again
-
-					}
-
 					workPeteMeeting.acquire();
-
 				} catch (InterruptedException e) {
 				}
 
@@ -91,7 +82,7 @@ public class SaintsMansion {
 		}
 
 		/**
-		 * Verzameloverleg: Minimaal 3 werkpieten, minimaal 1 verzamelpiet
+		 * Verzameloverleg: Minimaal 3 verzamelpieten, minimaal 1 werkpiet
 		 * beschikbaar Werkoverleg: Minimaal 3 werkpieten, GEEN verzamelpiet
 		 * beschikbaar
 		 */
@@ -100,17 +91,20 @@ public class SaintsMansion {
 			if (canAttendGatherMeeting()) {
 				// Go have a GatherMeeting
 				attentGatherMeeting();
-			} else if(canAttendWorkMeeting()){
+			} else if (canAttendWorkMeeting()) {
 				// Go have a WorkMeeting
 				attendWorkMeeting();
 			}
+			saint.release();
 		}
 
 		/**
 		 * 
 		 */
 		private void attendWorkMeeting() {
-			// TODO Auto-generated method stub
+			// acquire the desired petes
+
+			// afterwards release them
 
 		}
 
@@ -118,7 +112,9 @@ public class SaintsMansion {
 		 * 
 		 */
 		private void attentGatherMeeting() {
-			// TODO Auto-generated method stub
+			// acquire the desired petes
+
+			// afterwards release them
 
 		}
 
@@ -150,7 +146,11 @@ public class SaintsMansion {
 					// TODO Laten wachten ook al zijn er voldoende wachtende?
 					if (availableGatherPetes < GATHERPETES_NEEDED_GATHERING) {
 						availableGatherPetes++;
+						System.err.println("Gatherpetes available: "+availableGatherPetes);
 						gatherMutex.release();
+						
+						
+						saint.acquire();
 					} else {
 						gatherMutex.release();
 					}
@@ -180,7 +180,11 @@ public class SaintsMansion {
 					// TODO Laten wachten ook al zijn er voldoende wachtende?
 					if (availableWorkPetes < WORKPETES_NEEDED_GATHERING) {
 						availableWorkPetes++;
+						System.err.println("Workpetes available: "+availableWorkPetes);
 						workMutex.release();
+						
+						
+						saint.acquire();
 					} else {
 						workMutex.release();
 					}
