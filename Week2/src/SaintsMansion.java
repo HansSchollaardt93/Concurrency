@@ -13,7 +13,7 @@ public class SaintsMansion {
 	private Thread[] gatherpetes;
 	private Thread[] workerpetes;
 
-	public Semaphore gatherPeteMeeting, workPeteMeeting, workMutex,
+	public Semaphore readyForGathermeeting, readyForWorkmeeting, workMutex,
 			gatherMutex, saint;
 
 	public SaintsMansion() {
@@ -22,9 +22,9 @@ public class SaintsMansion {
 
 		// initially no pete's to wait for
 		//TODO beschikbare permits???
-		gatherPeteMeeting = new Semaphore(NR_OF_GATHERPETES, true);
+		readyForGathermeeting = new Semaphore(NR_OF_GATHERPETES, true);
 		//TODO beschikbare permits???
-		workPeteMeeting = new Semaphore(NR_OF_WORKPETES, true);
+		readyForWorkmeeting = new Semaphore(NR_OF_WORKPETES, true);
 		workMutex = new Semaphore(1, true);
 		gatherMutex = new Semaphore(1, true);
 		saint = new Semaphore(1);
@@ -61,8 +61,10 @@ public class SaintsMansion {
 //				regenerateEnergy();
 				attendGathering();
 				try {
-					workPeteMeeting.acquire();
+					readyForWorkmeeting.acquire(3);
+					readyForGathermeeting.acquire(1);
 				} catch (InterruptedException e) {
+				
 				}
 
 			}
@@ -183,7 +185,8 @@ public class SaintsMansion {
 						System.err.println("Workpetes available: "+availableWorkPetes);
 						workMutex.release();
 						
-						
+						readyForWorkmeeting.release();
+
 						saint.acquire();
 					} else {
 						workMutex.release();
