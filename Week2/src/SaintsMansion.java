@@ -5,8 +5,7 @@ import java.util.concurrent.Semaphore;
  * from Spain to Holland with all of his petes, where they gather the childrens
  * wishlists and take care of presenting them with their desired gifts.
  * 
- * Pepernuts are not included in this program, neither were they consumed during
- * programming :)
+ * Peppernuts are not included in this program, neither were they consumed during programming :)
  * 
  * @author Hans Schollaardt
  * 
