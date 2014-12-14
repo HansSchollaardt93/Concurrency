@@ -2,7 +2,6 @@ public abstract class Pete extends Thread {
 	protected String name;
 	private static int referenceId = 100;
 	protected int id;
-	protected int r,g,b;
 	
 	public Pete(String name) {
 		super(name);
@@ -22,7 +21,7 @@ public abstract class Pete extends Thread {
 	 */
 	public void doWork(int maxSeconds) {
 		try {
-			int sleep = (int) (Math.random() * (maxSeconds * 1000)+5);
+			int sleep = (int) (Math.random() * (maxSeconds * 1000));
 			System.out.println(this + " has started to work for " + (sleep/1000) + " seconds");
 			Thread.sleep(sleep);
 			System.out.println(this + " is done working");
@@ -34,6 +33,8 @@ public abstract class Pete extends Thread {
 
 	@Override
 	public String toString() {
-		return  "Pete with name: " + name;
+		return  "Pete with id: " + name;
 	}
+	
+	
 }
