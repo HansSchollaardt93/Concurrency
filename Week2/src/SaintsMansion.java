@@ -1,5 +1,16 @@
 import java.util.concurrent.Semaphore;
 
+/**
+ * Saintsmansion; the house of the old, wise, white bearded saint. He travels
+ * from Spain to Holland with all of his petes, where they gather the childrens
+ * wishlists and take care of presenting them with their desired gifts.
+ * 
+ * Pepernuts are not included in this program, neither were they consumed during
+ * programming :)
+ * 
+ * @author Hans Schollaardt
+ * 
+ */
 public class SaintsMansion {
 	// Constant values
 	private static final int NR_OF_GATHERPETES = 10, NR_OF_WORKPETES = 3,
@@ -23,6 +34,10 @@ public class SaintsMansion {
 	public Semaphore readyForGathermeeting, readyForWorkmeeting, workMutex,
 			gatherMutex, saint;
 
+	/**
+	 * Constructor of Saintsmansion; responsible for initializing Threads,
+	 * Semaphores and Object
+	 */
 	public SaintsMansion() {
 		gatherpetes = new Thread[NR_OF_GATHERPETES];
 		workerpetes = new Thread[NR_OF_WORKPETES];
@@ -42,6 +57,12 @@ public class SaintsMansion {
 		saint.start();
 	}
 
+	/**
+	 * Initial setup of all the Pete threads, differentiating the Petes in Work-
+	 * and Gatherpetes, where Workpetes are either "uncolored", or "black". When
+	 * a workpete is black, he's seen as experienced, and can attend
+	 * Gathermeetings.
+	 */
 	private void createPeteThreads() {
 		for (int i = 0; i < NR_OF_GATHERPETES; i++) {
 			gatherpetes[i] = new GatherPete("Gatherpete " + i);
@@ -61,9 +82,12 @@ public class SaintsMansion {
 
 	}
 
-	/*
+	/**
+	 * The Saint; an old wise, but tired man. One that sleeps, or when woken up
+	 * by petes organizes Work- or Gathermeetings.
 	 * 
-	 * SAINT
+	 * @author Hans Schollaardt
+	 * 
 	 */
 	class Saint extends Thread {
 		public boolean inMeeting = false;
@@ -73,7 +97,6 @@ public class SaintsMansion {
 			while (true) {
 				try {
 					saint.acquire();
-
 					if (canAttendWorkMeeting()) {
 						// Go have a WorkMeeting
 						System.err.println("Can attend Workmeeting");
@@ -82,7 +105,7 @@ public class SaintsMansion {
 					} else if (canAttendGatherMeeting()) {
 						// Go have a GatherMeeting
 						System.err.println("Can attend Gathermeeting");
-						attentGatherMeeting();
+						attendGatherMeeting();
 					}
 					saint.release();
 				} catch (InterruptedException e) {
@@ -95,7 +118,8 @@ public class SaintsMansion {
 		}
 
 		/**
-		 * Werkoverleg: Minimaal 3 werkpieten, GEEN verzamelpiet beschikbaar
+		 * Workmeeting in which the saint gathers a minimum of 3 workpetes is
+		 * available, no or not enough gatherpetes available
 		 */
 		private void attendWorkMeeting() throws InterruptedException {
 			/*
@@ -111,19 +135,18 @@ public class SaintsMansion {
 		}
 
 		/**
-		 * Verzameloverleg: Minimaal 3 verzamelpieten, minimaal 1 zwarte(!!)
-		 * werkpiet beschikbaar
+		 * Gathermeeting in which the saint gathers a minimum of 3 Gatherpetes
+		 * and at least 1 black workpete.
 		 */
-		private void attentGatherMeeting() throws InterruptedException {
-			// acquire the desired petes
+		private void attendGatherMeeting() throws InterruptedException {
 			meetingInProgress = true;
 
 			// release those not needed for gathering
 			readyForGathermeeting.release(availableGatherPetes
 					- MIN_GATHERPETES_NEEDED);
-			
+			// TODO !!
 			// readyForWorkmeeting.release(availableBlackWorkPetes-1);
-			
+
 			// can release all the petes that are not black
 			readyForWorkmeeting.release(availableWorkPetes);
 
@@ -144,21 +167,34 @@ public class SaintsMansion {
 
 			meetingInProgress = false;
 		}
-/**
- * 
- * @return
- */
+
+		/**
+		 * Method to return boolean if the conditions allow a Gathermeeting to
+		 * take place
+		 * 
+		 * @return true; enough gather- and the right workpete is available
+		 *         false; other situations
+		 */
 		private boolean canAttendGatherMeeting() {
 			return (availableGatherPetes >= MIN_GATHERPETES_NEEDED && availableBlackWorkPetes >= 1);
 		}
-/**
- * 
- * @return
- */
+
+		/**
+		 * Method to return boolean the conditions allow a Gathermeeting to take
+		 * place
+		 * 
+		 * @return true; enough workpetes are available false; not enough
+		 *         workpetes are available
+		 */
 		private boolean canAttendWorkMeeting() {
 			return (availableWorkPetes + availableBlackWorkPetes >= MIN_WORKPETES_NEEDED);
 		}
 
+		/**
+		 * 
+		 * @param workmeeting
+		 *            The type of workmeeting (e.g. a gathermeeting)
+		 */
 		private void doWork(Worktype workmeeting) {
 			try {
 				int MAXDURATION = (int) (Math.random() * (MAX_MEETING_TIME * 1000)) + 5000;
@@ -176,8 +212,13 @@ public class SaintsMansion {
 		}
 	}
 
-	/*
-	 * GATHERPETE
+	/**
+	 * Gatherpete; a subclass of the Pete class. This contains all logic for
+	 * fulfilling their work gathering wishlists. Those the Workpetes in their
+	 * turn need to buy or create the appropriate gifts.
+	 * 
+	 * @author Hans Schollaardt
+	 * 
 	 */
 	class GatherPete extends Pete {
 		public GatherPete(String name) {
@@ -207,8 +248,14 @@ public class SaintsMansion {
 
 	}
 
-	/*
-	 * WORKPETE
+	/**
+	 * The Workpete representation of the Saints helpers. A workpete buys and/or
+	 * creates presents that are on the wishlists the Gatherpetes collected.
+	 * Subclass of Pete that contains all base logic for a Pete such as name and
+	 * ID.
+	 * 
+	 * @author Hans Schollaardt
+	 * 
 	 */
 	class WorkPete extends Pete {
 		private boolean black = false;
@@ -253,11 +300,22 @@ public class SaintsMansion {
 			}
 		}
 
+		/**
+		 * 
+		 * @return true; a workpete is black by going down chimneys false; a
+		 *         workpete is of another skincolour
+		 */
 		public boolean isBlack() {
 			return black;
 		}
 	}
 
+	/**
+	 * Enum representing the different types of work a pete will be carrying out
+	 * 
+	 * @author Hans Schollaardt
+	 * 
+	 */
 	enum Worktype {
 		WORKMEETING, GATHERMEETING
 	}
