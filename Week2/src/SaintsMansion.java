@@ -5,13 +5,14 @@ import java.util.concurrent.Semaphore;
  * from Spain to Holland with all of his petes, where they gather the children's
  * wish lists and take care of presenting them with their desired gifts.
  * 
- * 'Peppernuts' are not included in this program, neither were they consumed
+ * 'Peppernuts' are not included in this program, nor were they consumed
  * during construction :)
  * 
  * @author Hans Schollaardt
  */
 public class SaintsMansion {
 	// Constant values
+
 	private static final int NR_OF_GATHERPETES = 5, NR_OF_WORKPETES = 7,
 			MAX_MEETING_TIME = 20, MAX_WORKDURATION_GATHERPETES = 40, MAX_WORKDURATION_WORKPETES = 20;
 	// one in 'how-many' should be black petes?
@@ -23,6 +24,7 @@ public class SaintsMansion {
 	// Availability Counters
 	private int availableWorkPetes, availableBlackWorkPetes,
 			availableGatherPetes;
+
 	private boolean meetingInProgress = false;
 	private Thread[] gatherpetes, workerpetes;
 	public Semaphore readyForGathermeeting, readyForWorkmeeting, workMutex,
@@ -48,7 +50,7 @@ public class SaintsMansion {
 
 		// Initialize Saint
 		Saint saint = new Saint();
-	//	saint.start();
+		saint.start();
 	}
 
 	/**
@@ -84,7 +86,6 @@ public class SaintsMansion {
 	 * 
 	 */
 	class Saint extends Thread {
-		public boolean inMeeting = false;
 
 		@Override
 		public void run() {
