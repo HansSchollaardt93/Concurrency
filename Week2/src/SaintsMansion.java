@@ -87,7 +87,6 @@ public class SaintsMansion {
 	 * 
 	 */
 	class Saint extends Thread {
-		public boolean inMeeting = false;
 
 		@Override
 		public void run() {
