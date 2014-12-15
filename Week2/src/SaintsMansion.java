@@ -5,7 +5,8 @@ import java.util.concurrent.Semaphore;
  * from Spain to Holland with all of his petes, where they gather the childrens
  * wishlists and take care of presenting them with their desired gifts.
  * 
- * Peppernuts are not included in this program, neither were they consumed during programming :)
+ * Peppernuts are not included in this program, neither were they consumed
+ * during programming :)
  * 
  * @author Hans Schollaardt
  * 
@@ -14,17 +15,14 @@ public class SaintsMansion {
 	// Constant values
 	private static final int NR_OF_GATHERPETES = 10, NR_OF_WORKPETES = 3,
 			MAX_MEETING_TIME = 20;
-
+	private static final int MIN_WORKPETES_NEEDED = 3,
+			MIN_GATHERPETES_NEEDED = 3;
 	// one in how many should be black petes?
 	private static final int MOD_VALUE_BLACK_PETES = 3;
 
-	private static final int MIN_WORKPETES_NEEDED = 3,
-			MIN_GATHERPETES_NEEDED = 3;
-
-	private static int blackPeteCount, workPeteCount;
 	// Counters
 	private int availableWorkPetes, availableBlackWorkPetes,
-			availableGatherPetes;
+			availableGatherPetes, blackPeteCount, workPeteCount;
 
 	private boolean meetingInProgress = false;
 
