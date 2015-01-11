@@ -1,4 +1,4 @@
-sint-piet-opdracht2
+Concurrency
 ===================
 
-Concurrency opdracht 2
+Concurrency opdrachten
