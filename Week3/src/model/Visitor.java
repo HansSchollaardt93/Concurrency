@@ -2,24 +2,30 @@ package model;
 
 /**
  * Superclass for Citizen and Celebrity. Used for basic/shared variable management.
- * @author Hans
+ * @author Hans Schollaardt
  *
  */
 public abstract class Visitor extends Thread {
-		private static int uniqueId = 0;
-		private int visitorID;
+		private Museum museum;
 	
 		public Visitor() {
-			this.visitorID = uniqueId++;
+			this.museum = Museum.getInstance();
 		}
 
-		public int getVisitorID() {
-			return visitorID;
-		}
-
-		@Override
-		public String toString() {
-			return "Bezoeker "+ visitorID;
+		public void visitMuseum(){
+			try {
+				museum.getTicket(this);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		
+		public void liveALife(){
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
 }

@@ -12,76 +12,138 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  */
 public class Museum {
-	private final int NR_OF_CELEBRITIES;
-	private final int NR_OF_CITIZENS;
-
-	private Thread[] celebrities, citizens;
-	private final Condition noCelebrity;
+	private static Museum museum;
+	private final Condition celebrityVisit, citizenVisiting;
 	private final Lock lock;
-
-	private int celebritiesVisited, waitingCitizens, waitingCelebrities;
 
 	private boolean celebrityVisiting;
 
+	private int celebritiesVisited;
+	private int nrOfCitizensInside;
+	private int celebrities_waiting;
+	private int citizens_waiting;
+	private int citizensVisiting;
+
 	/**
-	 * Public constructor of the museum; takes care of setting up the variables,
-	 * starting threads depending on those variables and creating Conditions and
-	 * Locks.
+	 * Private constructor of the museum; takes care of setting up the
+	 * variables, starting threads depending on those variables and creating
+	 * Conditions and Locks.
 	 * 
 	 * @param nrOfCelebrities
 	 *            The number of celebrity-threads used in this simulation.
 	 * @param nrOfCitizens
 	 *            The number of citizen-threads used in this simulation.
 	 */
-	public Museum(int nrOfCelebrities, int nrOfCitizens) {
-		NR_OF_CELEBRITIES = nrOfCelebrities;
-		NR_OF_CITIZENS = nrOfCitizens;
-
-		celebrities = new Thread[NR_OF_CELEBRITIES];
-		citizens = new Thread[NR_OF_CITIZENS];
-
+	private Museum() {
 		lock = new ReentrantLock();
-		noCelebrity = lock.newCondition();
-		setUpThreads();
-		
-		lock.
+		celebrityVisit = lock.newCondition();
+		citizenVisiting = lock.newCondition();
+	}
 
+	public static Museum getInstance() {
+		if (museum == null) {
+			museum = new Museum();
+		}
+		return museum;
 	}
 
 	/**
-	 * Method for setting up and starting the Threads used in this simulation
+	 * 
+	 * @param visitor
+	 * @throws InterruptedException
 	 */
-	private void setUpThreads() {
-		for (int i = 0; i < NR_OF_CELEBRITIES; i++) {
-			celebrities[i] = new Celebrity();
-			celebrities[i].start();
-		}
-		for (int i = 0; i < NR_OF_CITIZENS; i++) {
-			citizens[i] = new Citizen();
-			citizens[i].start();
-		}
-
-	}
-
-	public class Citizen extends Visitor {
-		boolean isWaiting;
-		private Museum museum;
-
-		public Citizen() {
-			super();
-
-			while (!isWaiting) {
-				try {
-
-				} finally {
-					lock.unlock();
+	public void getTicket(Visitor visitor) throws InterruptedException {
+		lock.lock();
+		if (visitor instanceof Celebrity) {
+			try {
+				celebrities_waiting++;
+				while (celebrityVisiting || nrOfCitizensInside > 0) {
+					celebrityVisit.await();
+					celebrityVisiting = false;
+					//continue
 				}
+				celebrities_waiting--;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
-
+		if (visitor instanceof Citizen) {
+			try {
+				citizens_waiting++;
+				while (celebrityVisiting) {
+					citizenVisiting.await();
+					//continue
+				}
+				citizens_waiting--;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		payVisit(visitor);
 	}
 
-	public class Celebrity extends Visitor {
+	/**
+	 * 
+	 * @param visitor
+	 * @throws InterruptedException
+	 */
+	private void payVisit(Visitor visitor) throws InterruptedException {
+		// simulate looking around
+		lock.unlock();
+		takeALookAround(visitor);
 
+		lock.lock();
+		try {
+			if (visitor instanceof Celebrity) {
+				if (celebritiesVisited < 3) {
+					celebritiesVisited++;
+					letNextEnter();
+				} else {
+					citizenVisiting.signalAll();
+					// Asured no other visitors are inside; reset all counters
+					resetCounters();
+				}
+			}
+			if (visitor instanceof Citizen) {
+				letNextEnter();
+			}
+		} finally {
+			lock.unlock();
+		}
 	}
+
+	/**
+	 * 
+	 * @param visitor
+	 * @throws InterruptedException
+	 */
+	private void takeALookAround(Visitor visitor) throws InterruptedException {
+		if (visitor instanceof Citizen) {
+			System.out.println("Another visitor is taking a look around in the Museum");
+			Citizen.sleep(5000);
+		}
+		if (visitor instanceof Celebrity) {
+			System.out.println("Celebrity is taking a look around in the Museum");
+			Celebrity.sleep(5000);
+		}
+	}
+
+	private void resetCounters() {
+		celebritiesVisited = 0;
+		citizensVisiting = 0;
+	}
+
+	/**
+	 * 
+	 */
+	public void letNextEnter() {
+		if (celebrities_waiting > 0) {
+			// signal one new celebrity to enter the Museum
+			celebrityVisit.signal();
+		} else {
+			// Signal all the citizenthreads to attempt new entrance
+			citizenVisiting.signalAll();
+		}
+	}
+
 }
