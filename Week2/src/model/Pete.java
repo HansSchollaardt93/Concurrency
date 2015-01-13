@@ -1,3 +1,4 @@
+package model;
 public abstract class Pete extends Thread {
 	protected String name;
 	private static int referenceId = 100;
