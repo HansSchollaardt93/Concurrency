@@ -12,6 +12,7 @@ public abstract class Visitor extends Thread {
 	private int id;
 
 	public Visitor(Museum museum, int id) {
+		assert museum != null : "Museum cant be null.";
 		this.museum = museum;
 		this.id = id;
 	}

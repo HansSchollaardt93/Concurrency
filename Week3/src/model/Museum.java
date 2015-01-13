@@ -4,6 +4,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import main.APL;
+
 /**
  * Simulation class of the dutch "Rijksmuseum". Simulation of regular citizens
  * but also Celebrities visiting the Museum.
@@ -49,7 +51,12 @@ public class Museum {
 	 *             should NOT happen though :)
 	 */
 	public void getTicket(Visitor visitor) throws InterruptedException {
+		assert visitor != null : "Visitor cant be null.";
+		assert visitor instanceof Celebrity || visitor instanceof Citizen : "Visitor has to be instanceof Celebrity or Citizen";
+
 		if (visitor instanceof Celebrity) {
+			assert (celebritiesWaiting <= APL.NR_OF_CELEBRITIES) : "There where more waiting Celebrities than Celebrities instantiated";
+
 			try {
 				lock.lock();
 				// System.out.println("Celebrity " + visitor.getPersonId()
@@ -63,6 +70,10 @@ public class Museum {
 					celebrityVisit.await();
 					// continue
 				}
+
+				assert (!celebrityVisiting) : "The Celebrity went inside while it was not their turn!";
+				assert (celebritiesVisited < 3 || citizensInside == 0) : "The Celebrity went inside while there where 3 other Celebrities";
+
 				System.out.println("Celebrity " + visitor.getPersonId()
 						+ " is entering the museum");
 
@@ -75,6 +86,8 @@ public class Museum {
 			}
 		}
 		if (visitor instanceof Citizen) {
+			assert (citizensInside <= APL.NR_OF_CITIZENS) : "There where more waiting Citizens than Citizens instantiated";
+
 			try {
 				lock.lock();
 
@@ -83,6 +96,9 @@ public class Museum {
 						&& citizensToVisitAfterCeleb == 0) {
 					citizenVisit.await();
 				}
+
+				assert (celebritiesWaiting == 0 || celebritiesVisited >= 3 || citizensToVisitAfterCeleb != 0) : "The Citizen went inside while it was not their turn!";
+
 				// First of all, all the citizens left through in between the
 				// third and fourth Celebrity will have to enter the museum
 				if (citizensToVisitAfterCeleb > 0) {
