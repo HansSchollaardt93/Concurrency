@@ -18,8 +18,8 @@ public class Museum {
 	private boolean celebrityVisiting = false;
 
 	private int celebritiesVisited = 0, celebritiesWaiting = 0;
-	private int citizensInside = 0, citizensWaiting = 0,
-			citizensRemainingTurns = 0;
+	private int citizensInside = 0, citizensWaiting = 0;
+	private int citizensToVisitAfterCeleb;
 
 	/**
 	 * Private constructor of the museum; takes care of setting up the
@@ -38,23 +38,27 @@ public class Museum {
 	}
 
 	/**
+	 * Method to simulate the entering of a visitor to the museum; a visitor
+	 * (either way Celebrity or Citizen) will queue up and the guard
+	 * (Conditions) will let the visitors in right order enter the museum
 	 * 
 	 * @param visitor
+	 *            The visitor; Celebrity or Citizen
 	 * @throws InterruptedException
+	 *             exception to be thrown when a Tread stops in an unusual way;
+	 *             should NOT happen though :)
 	 */
 	public void getTicket(Visitor visitor) throws InterruptedException {
-
 		if (visitor instanceof Celebrity) {
 			try {
 				lock.lock();
 				// System.out.println("Celebrity " + visitor.getPersonId()
 				// + " has arrived at the museum.");
-
-				// assert niet teveel aan het wachten; niet meer dan dat er
-				// eigenlijk bestaan!
 				celebritiesWaiting++;
 				System.err.println("Celebrities waiting outside: "
 						+ celebritiesWaiting);
+				// wait until everyone is out of the museum, prior to entering
+				// yourself
 				while (celebrityVisiting || citizensInside > 0) {
 					celebrityVisit.await();
 					// continue
@@ -64,9 +68,6 @@ public class Museum {
 
 				celebrityVisiting = true;
 				celebritiesWaiting--;
-				celebritiesVisited++;
-				System.err
-						.println("Celebrities visited: " + celebritiesVisited);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} finally {
@@ -76,13 +77,21 @@ public class Museum {
 		if (visitor instanceof Citizen) {
 			try {
 				lock.lock();
-				// System.out.println("Citizen " + visitor.getPersonId()
-				// + " has arrived at the museum.");
+
 				citizensWaiting++;
-				while (celebrityVisiting || isCelebritiesTurn()) {
+				while ((celebrityVisiting || isCelebritiesTurn())
+						&& citizensToVisitAfterCeleb == 0) {
 					citizenVisit.await();
 				}
+				// First of all, all the citizens left through in between the
+				// third and fourth Celebrity will have to enter the museum
+				if (citizensToVisitAfterCeleb > 0) {
+					citizensToVisitAfterCeleb--;
+				}
 				// Can continue
+				// reset the count as all people waiting for the celebrities
+				// were permitted to enter
+				celebritiesVisited = 0;
 				citizensWaiting--;
 				citizensInside++;
 			} catch (InterruptedException e) {
@@ -95,43 +104,62 @@ public class Museum {
 	}
 
 	private boolean isCelebritiesTurn() {
-		return (celebritiesVisited < 3)
-				|| (citizensWaiting == 0 && celebritiesWaiting > 0);
+		return ((celebritiesVisited < 3 || citizensWaiting == 0)
+				&& celebritiesWaiting > 0 && citizensToVisitAfterCeleb == 0);
 	}
 
 	/**
+	 * Method to simulate the visit of a user in the museum, which is: looking
+	 * around and afterwards leaving the museum, returning straight back to life
 	 * 
 	 * @param visitor
+	 *            The visitor; Citizen or Celebrity
 	 * @throws InterruptedException
+	 *             exception to be thrown when a Tread stops in an unusual way;
+	 *             should NOT happen though :)
 	 */
 	private void payVisit(Visitor visitor) throws InterruptedException {
 		// simulate looking around
 		takeALookAround(visitor);
+		// Simulate leaving afterwards
+		leaveMuseum(visitor);
+	}
 
+	private void leaveMuseum(Visitor visitor) {
 		// simulate leaving of the visitor
 		lock.lock();
 		try {
 			if (visitor instanceof Celebrity) {
+				celebritiesVisited++;
+				System.err
+						.println("Celebrities visited: " + celebritiesVisited);
 				System.out.println("Celebrity " + visitor.getPersonId()
-						+ " is leaving the museum \n"
-						+ "Celebrities waiting: " + celebritiesWaiting
-						+ "\n" + "Citizens waiting: " + citizensWaiting
-						+ "\n -------------------------");
+						+ " is leaving the museum \n" + "Celebrities waiting: "
+						+ celebritiesWaiting + "\n" + "Citizens waiting: "
+						+ citizensWaiting + "\n -------------------------");
 				celebrityVisiting = false;
 				if (isCelebritiesTurn()) {
 					celebrityVisit.signalAll();
+					if (celebritiesVisited > 3 && citizensWaiting > 0) {
+						celebritiesVisited = 0;
+					}
 				} else {
 					// Visitors turn
+
+					citizensToVisitAfterCeleb = citizensWaiting;
 					citizenVisit.signalAll();
+					System.err.println("After third celeb: "
+							+ citizensToVisitAfterCeleb);
 				}
 			}
 			if (visitor instanceof Citizen) {
 				System.out.println("Citizen " + visitor.getPersonId()
 						+ " is leaving the museum. \n"
-						+ "Celebrities waiting: " + celebritiesWaiting
-						+ "\n" + "Citizens waiting: " + citizensWaiting
+						+ "Celebrities waiting: " + celebritiesWaiting + "\n"
+						+ "Citizens waiting: " + citizensWaiting
 						+ "\n -------------------------");
 				citizensInside--;
+
 				if (isCelebritiesTurn()) {
 					// Celebrities turn
 					celebrityVisit.signalAll();
@@ -146,22 +174,27 @@ public class Museum {
 	}
 
 	/**
+	 * Method to simulate the time a user stays inside the museum, doing
+	 * whatever a visitor might do in a museum
 	 * 
 	 * @param visitor
+	 *            The visitor; Citizen or Celebrity
 	 * @throws InterruptedException
+	 *             exception to be thrown when a Tread stops in an unusual way;
+	 *             should NOT happen though :)
 	 */
 	private void takeALookAround(Visitor visitor) throws InterruptedException {
 		if (visitor instanceof Citizen) {
 			System.out.println("Citizen " + visitor.getPersonId()
 					+ " is taking a look around in the Museum");
 			// Simulate visit
-			Citizen.sleep((long) (Math.random()*4000));
+			Citizen.sleep((long) (Math.random() * 4000));
 		}
 		if (visitor instanceof Celebrity) {
 			System.out.println("Celebrity " + visitor.getPersonId()
 					+ " is taking a look around in the Museum");
 			// Simulate visit
-			Celebrity.sleep((long) (Math.random()*10000));
+			Celebrity.sleep((long) (Math.random() * 10000));
 		}
 	}
 
