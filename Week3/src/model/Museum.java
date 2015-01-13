@@ -47,20 +47,26 @@ public class Museum {
 		if (visitor instanceof Celebrity) {
 			try {
 				lock.lock();
-				System.out.println("Celebrity " + visitor.getPersonId()
-						+ " has arrived at the museum.");
+				// System.out.println("Celebrity " + visitor.getPersonId()
+				// + " has arrived at the museum.");
 
 				// assert niet teveel aan het wachten; niet meer dan dat er
 				// eigenlijk bestaan!
 				celebritiesWaiting++;
+				System.err.println("Celebrities waiting outside: "
+						+ celebritiesWaiting);
 				while (celebrityVisiting || citizensInside > 0) {
 					celebrityVisit.await();
 					// continue
 				}
-				System.out.println("Celebrity is entering the museum");
+				System.out.println("Celebrity " + visitor.getPersonId()
+						+ " is entering the museum");
+
 				celebrityVisiting = true;
 				celebritiesWaiting--;
 				celebritiesVisited++;
+				System.err
+						.println("Celebrities visited: " + celebritiesVisited);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} finally {
@@ -70,13 +76,14 @@ public class Museum {
 		if (visitor instanceof Citizen) {
 			try {
 				lock.lock();
-				System.out.println("Citizen " + visitor.getId()
-						+ " has arrived at the museum.");
-				citizensRemainingTurns++;
+				// System.out.println("Citizen " + visitor.getPersonId()
+				// + " has arrived at the museum.");
+				citizensWaiting++;
 				while (celebrityVisiting || isCelebritiesTurn()) {
 					citizenVisit.await();
 				}
-				citizensRemainingTurns--;
+				// Can continue
+				citizensWaiting--;
 				citizensInside++;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -88,8 +95,8 @@ public class Museum {
 	}
 
 	private boolean isCelebritiesTurn() {
-		return (celebritiesVisited < 3 || celebritiesWaiting == 0)
-				&& citizensWaiting == 0 && celebritiesWaiting > 0;
+		return (celebritiesVisited < 3)
+				|| (citizensWaiting == 0 && celebritiesWaiting > 0);
 	}
 
 	/**
@@ -101,27 +108,36 @@ public class Museum {
 		// simulate looking around
 		takeALookAround(visitor);
 
+		// simulate leaving of the visitor
 		lock.lock();
 		try {
 			if (visitor instanceof Celebrity) {
 				System.out.println("Celebrity " + visitor.getPersonId()
-						+ " is leaving the museum");
+						+ " is leaving the museum \n"
+						+ "Celebrities waiting: " + celebritiesWaiting
+						+ "\n" + "Citizens waiting: " + citizensWaiting
+						+ "\n -------------------------");
 				celebrityVisiting = false;
-				if (celebritiesVisited == 3 && citizensRemainingTurns == 0) {
-					// no citizens waiting, let another celebrity go in first
-					celebritiesVisited -= 1;
-					celebrityVisit.signalAll();
-				} 
-			}
-			if (visitor instanceof Citizen) {
-				System.out.println("Citizen " + visitor.getPersonId()
-						+ " is leaving the museum");
-				citizensInside--;
 				if (isCelebritiesTurn()) {
 					celebrityVisit.signalAll();
 				} else {
-				citizensWaiting = citizensRemainingTurns;
-				citizenVisit.signalAll();
+					// Visitors turn
+					citizenVisit.signalAll();
+				}
+			}
+			if (visitor instanceof Citizen) {
+				System.out.println("Citizen " + visitor.getPersonId()
+						+ " is leaving the museum. \n"
+						+ "Celebrities waiting: " + celebritiesWaiting
+						+ "\n" + "Citizens waiting: " + citizensWaiting
+						+ "\n -------------------------");
+				citizensInside--;
+				if (isCelebritiesTurn()) {
+					// Celebrities turn
+					celebrityVisit.signalAll();
+				} else {
+					// Visitors turn
+					citizenVisit.signalAll();
 				}
 			}
 		} finally {
@@ -136,32 +152,16 @@ public class Museum {
 	 */
 	private void takeALookAround(Visitor visitor) throws InterruptedException {
 		if (visitor instanceof Citizen) {
-			System.out
-					.println("Another visitor is taking a look around in the Museum");
-			Citizen.sleep(5000);
+			System.out.println("Citizen " + visitor.getPersonId()
+					+ " is taking a look around in the Museum");
+			// Simulate visit
+			Citizen.sleep((long) (Math.random()*4000));
 		}
 		if (visitor instanceof Celebrity) {
-			System.out
-					.println("Celebrity is taking a look around in the Museum");
-			Celebrity.sleep(5000);
-		}
-	}
-
-	private void resetCounters() {
-		celebritiesVisited = 0;
-		citizensInside = 0;
-	}
-
-	/**
-	 * 
-	 */
-	public void letNextEnter() {
-		if (celebritiesWaiting > 0) {
-			// signal one new celebrity to enter the Museum
-			celebrityVisit.signal();
-		} else {
-			// Signal all the citizenthreads to attempt new entrance
-			citizenVisit.signalAll();
+			System.out.println("Celebrity " + visitor.getPersonId()
+					+ " is taking a look around in the Museum");
+			// Simulate visit
+			Celebrity.sleep((long) (Math.random()*10000));
 		}
 	}
 

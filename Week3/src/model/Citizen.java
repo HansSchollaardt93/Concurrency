@@ -10,8 +10,8 @@ public class Citizen extends Visitor {
 	@Override
 	public void run() {
 		while(true){
-			liveALife();
 			visitMuseum();
+			liveALife();
 		}
 	}
 }

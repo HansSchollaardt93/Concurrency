@@ -24,7 +24,7 @@ public abstract class Visitor extends Thread {
 		
 		public void liveALife(){
 			try {
-				Thread.sleep(10000);
+				Thread.sleep((long) (Math.random()*10000));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
