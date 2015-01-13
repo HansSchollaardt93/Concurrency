@@ -7,9 +7,11 @@ package model;
  */
 public abstract class Visitor extends Thread {
 		private Museum museum;
-	
-		public Visitor() {
-			this.museum = Museum.getInstance();
+		private int id;
+
+		public Visitor(Museum museum, int id) {
+			this.museum = museum;
+			this.id = id;
 		}
 
 		public void visitMuseum(){
@@ -22,10 +24,16 @@ public abstract class Visitor extends Thread {
 		
 		public void liveALife(){
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+		
+		public int getPersonId(){
+			return this.id;
+		}
+		
+		
 
 }

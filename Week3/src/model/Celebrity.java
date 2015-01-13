@@ -1,9 +1,10 @@
 package model;
 
 public class Celebrity extends Visitor {
-
-	public Celebrity() {
-		super();
+	private static int uniqueId = 0;
+	
+	public Celebrity(Museum museum) {
+		super(museum, uniqueId++);
 	}
 	
 	@Override
@@ -13,4 +14,6 @@ public class Celebrity extends Visitor {
 			visitMuseum();
 		}
 	}
+	
+
 }
