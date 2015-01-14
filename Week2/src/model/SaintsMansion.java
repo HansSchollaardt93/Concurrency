@@ -29,8 +29,9 @@ public class SaintsMansion {
 	private boolean meetingInProgress = false;
 	private Thread[] gatherpetes, workerpetes;
 	public Semaphore readyForGathermeeting, readyForWorkmeeting,
-			readyForWorkmeetingBlack, meetingMutex, workMutex, gatherMutex,
-			saint;
+			readyForWorkmeetingBlack, meetingMutexGather, workMutex,
+			gatherMutex, saint, meetingMutexBlack, haveMeeting;
+	public Semaphore seatTaken;
 
 	/**
 	 * Constructor of Saintsmansion; responsible for initializing Threads,
@@ -90,6 +91,8 @@ public class SaintsMansion {
 	 */
 	class Saint extends Thread {
 
+		
+
 		@Override
 		public void run() {
 			while (true) {
@@ -145,8 +148,9 @@ public class SaintsMansion {
 
 		/**
 		 * Gathermeeting in which the saint gathers a minimum of 3 Gatherpetes
-		 * and at least 1 black workpete.
+		 * and exactly 1 black workpete.
 		 */
+		//TODO, reset the counters
 		private void attendGatherMeeting() throws InterruptedException {
 			/*
 			 * Take the appropriate ammount of petes with you to the meeting.
@@ -154,64 +158,31 @@ public class SaintsMansion {
 			 * available permits, and wait until all the petes are ready for the
 			 * meeting
 			 */
-			flag = MeetingFlag.GATHERMEETING;
-			int permits = availableGatherPetes + availableBlackWorkPetes;
-			// initially 0 available
-			meetingMutex = new Semaphore(0, true);
-
-			// block untill all the petes are 'seated', which means; they have
-			// released a permit, simulating they have entered the meetingroom
-			meetingMutex.acquire(permits);
+			int gatherpetesInMeeting = availableGatherPetes;
+			// create new semaphore with the needed petes as amount of permits
+			// (e.g. 1 pete needed == 1 permit)
+			meetingMutexBlack.release(gatherpetesInMeeting);
+			meetingMutexGather.release(1);
 			// set flag to announce to petes coming back from work they do not
 			// need to enter the queue
+			flag = MeetingFlag.GATHERMEETING;
 			meetingInProgress = true;
-			// Simulate having a meeting by sleeping the threads
-
+			/* release all waiting petes, let them decide if they need to enter and wait untill the right petes have entered the
+			 meeting*/
+			readyForGathermeeting.release(availableGatherPetes);
+			readyForWorkmeetingBlack.release(availableBlackWorkPetes);
+			
+			//after all the expected seats are taken, all petes are inside and we can start the meeting
+			seatTaken.acquire(gatherpetesInMeeting+1);
+						
 			// Thread sleep to simulate meeting
 			haveMeeting(Worktype.GATHERMEETING);
-
+			
+			haveMeeting.release(gatherpetesInMeeting + 1);
+			//reset the flag 
 			flag = MeetingFlag.NO_MEETING;
-			// Release those attending the meeting
-			meetingMutex.release(permits);
-			// Set meeting indicator false; from now on all petes will gather in
-			// queue
-			meetingInProgress = false;
-
-			assert (availableGatherPetes >= 3 && availableBlackWorkPetes >= 1);
-			workMutex.acquire();
-			if (availableBlackWorkPetes > 1) {
-				assert (availableBlackWorkPetes - 1 > 0);
-				// take only one black workpete to meeting
-				readyForWorkmeetingBlack.release(availableBlackWorkPetes - 1);
-			}
-			// Critical section; only the currently available (regular)petes
-			// should be released
-			readyForWorkmeeting.release(availableWorkPetes);
-
-			workMutex.release();
-			gatherMutex.acquire();
-			gatherPetesInMeeting = availableGatherPetes;
-			// send all gatherpetes into meeting
-			availableGatherPetes = 0;
-			gatherMutex.release();
-			// Attend the actual meeting
-			haveMeeting(Worktype.GATHERMEETING);
-
-			// release all workpetes afterwards
-			workMutex.acquire();
-			// Just one black pete taken into meeting
-			readyForWorkmeetingBlack.release(1);
-			workMutex.release();
-			// release gatherpetes
-
-			gatherMutex.acquire();
-			readyForGathermeeting.release(gatherPetesInMeeting);
-			// reset counter
-			gatherPetesInMeeting = 0;
-			gatherMutex.release();
-
-			meetingInProgress = false;
 		}
+		
 
 		/**
 		 * Method to return boolean if the conditions allow a Gathermeeting to
@@ -329,7 +300,7 @@ public class SaintsMansion {
 							// wake up the saint, let him check if meeting is
 							// possible!
 							saint.release();
-							// make it a non-blocking operation!
+							//sit down and wait untill called
 							readyForWorkmeetingBlack.acquire();
 						} else if (!this.black) {
 							workMutex.acquire();
@@ -342,32 +313,48 @@ public class SaintsMansion {
 							// wake up the saint, let him check if meeting is
 							// possible!
 							saint.release();
-							// make it a non-blocking operation!
+							//sit down and wait untill called
 							readyForWorkmeeting.acquire();
 						}
-						
-						//TODO NIEUW!
+
+						// TODO NIEUW!
 						if (flag == MeetingFlag.GATHERMEETING) {
 							// attend Gathermeeting, acquire one permit as it is
 							// needed
-
 							// acquire a spot in the meeting
-
-							break;
+							if (isBlack() && meetingMutexBlack.tryAcquire(1)) {
+							//wait untill meeting is over
+								seatTaken.release();
+								haveMeeting.acquire();								
+							} else if (!isBlack()
+									&& meetingMutexGather.tryAcquire(1)) {
+								//wait untill meeting is over
+								seatTaken.release();
+								haveMeeting.acquire();
+								// continue to work
+							} else {
+								break;
+							}
 						} else if (flag == MeetingFlag.WORKMEETING) {
-							// attend workmeeting, acquire one permit as it is
-							// needed
-
-							// acquire a spot in the meeting
-
+							// If this pete is a workpete (either way black or
+							// not) and there's a spot open to join the meeting
+							if ((this instanceof WorkPete)
+									&& meetingMutexBlack.tryAcquire(1)) {
+								seatTaken.release();
+								// enter meeting
+								haveMeeting.acquire();
+								// no spots open, continue to work
+							} else {
+								// nothing to do here, get back to work
+								break;
+							}
+						} else if (flag == MeetingFlag.NO_MEETING) {
+							// no meeting; continue to work
 							break;
 						}
-
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-
-					// Of: meetingflag.no_meeting
 				} else {
 					System.out.println("Meeting already started, " + this
 							+ " is going to work again...");
