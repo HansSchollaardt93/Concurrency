@@ -10,7 +10,7 @@ public class HiActor extends UntypedActor {
 		System.out.println("Hi actor exiting");
 	}
 
-	/* conGnues on the right => */
+	@Override
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof Message) {
 			Message greeting = (Message) message;
