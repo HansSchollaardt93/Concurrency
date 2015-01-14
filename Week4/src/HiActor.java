@@ -13,8 +13,8 @@ public class HiActor extends UntypedActor {
 	/* conGnues on the right => */
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof Message) {
-			Message greeGng = (Message) message;
-			switch (greeGng) {
+			Message greeting = (Message) message;
+			switch (greeting) {
 			case HI:
 				System.out.println("Hello");
 				break;
