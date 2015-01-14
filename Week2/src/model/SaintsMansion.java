@@ -1,3 +1,5 @@
+package model;
+
 import java.util.concurrent.Semaphore;
 
 /**
@@ -5,30 +7,30 @@ import java.util.concurrent.Semaphore;
  * from Spain to Holland with all of his petes, where they gather the children's
  * wish lists and take care of presenting them with their desired gifts.
  * 
- * 'Peppernuts' are not included in this program, nor were they consumed
- * during construction :)
- * 
  * @author Hans Schollaardt
  */
 public class SaintsMansion {
 	// Constant values
 
 	private static final int NR_OF_GATHERPETES = 5, NR_OF_WORKPETES = 7,
-			MAX_MEETING_TIME = 20, MAX_WORKDURATION_GATHERPETES = 40, MAX_WORKDURATION_WORKPETES = 20;
+			MAX_MEETING_TIME = 20, MAX_WORKDURATION_GATHERPETES = 40,
+			MAX_WORKDURATION_WORKPETES = 20;
 	// one in 'how-many' should be black petes?
-	private static final int MOD_VALUE_BLACK_PETES = 4, MIN_WORKPETES_NEEDED = 3,
-			MIN_GATHERPETES_NEEDED = 3;
-	
-	// Naming and meeting counters 
-	private int blackPeteCount, workPeteCount, regularWorkpetesInMeeting, blackWorkpetesInMeeting, gatherPetesInMeeting;
+	private static final int MOD_VALUE_BLACK_PETES = 4,
+			MIN_WORKPETES_NEEDED = 3, MIN_GATHERPETES_NEEDED = 3;
+
+	// Naming and meeting counters
+	private int blackPeteCount, workPeteCount, regularWorkpetesInMeeting,
+			blackWorkpetesInMeeting, gatherPetesInMeeting;
 	// Availability Counters
 	private int availableWorkPetes, availableBlackWorkPetes,
 			availableGatherPetes;
-
+	private MeetingFlag flag;
 	private boolean meetingInProgress = false;
 	private Thread[] gatherpetes, workerpetes;
-	public Semaphore readyForGathermeeting, readyForWorkmeeting, workMutex,
-			gatherMutex, saint;
+	public Semaphore readyForGathermeeting, readyForWorkmeeting,
+			readyForWorkmeetingBlack, meetingMutex, workMutex, gatherMutex,
+			saint;
 
 	/**
 	 * Constructor of Saintsmansion; responsible for initializing Threads,
@@ -40,6 +42,7 @@ public class SaintsMansion {
 
 		readyForGathermeeting = new Semaphore(0, true);
 		readyForWorkmeeting = new Semaphore(0, true);
+		readyForWorkmeetingBlack = new Semaphore(0, true);
 
 		workMutex = new Semaphore(1, true);
 		gatherMutex = new Semaphore(1, true);
@@ -98,6 +101,8 @@ public class SaintsMansion {
 					} else if (canAttendWorkMeeting()) {
 						// Go have a WorkMeeting
 						attendWorkMeeting();
+					} else {
+
 					}
 					saint.release();
 				} catch (InterruptedException e) {
@@ -120,7 +125,7 @@ public class SaintsMansion {
 			 */
 			meetingInProgress = true;
 			workMutex.acquire();
-			//save how many petes were taken into meeting; critical section
+			// save how many petes were taken into meeting; critical section
 			regularWorkpetesInMeeting = availableWorkPetes;
 			blackWorkpetesInMeeting = availableBlackWorkPetes;
 			workMutex.release();
@@ -128,9 +133,10 @@ public class SaintsMansion {
 			haveMeeting(Worktype.WORKMEETING);
 			// afterwards release them
 			workMutex.acquire();
-			//release those that attended the meeting
-			readyForWorkmeeting.release(regularWorkpetesInMeeting + blackWorkpetesInMeeting);
-			//reset counters
+			// release those that attended the meeting
+			readyForWorkmeeting.release(regularWorkpetesInMeeting
+					+ blackWorkpetesInMeeting);
+			// reset counters
 			regularWorkpetesInMeeting = 0;
 			blackWorkpetesInMeeting = 0;
 			workMutex.release();
@@ -142,38 +148,68 @@ public class SaintsMansion {
 		 * and at least 1 black workpete.
 		 */
 		private void attendGatherMeeting() throws InterruptedException {
+			/*
+			 * Take the appropriate ammount of petes with you to the meeting.
+			 * Acquire the number of petes, create the mutex with n-amount of
+			 * available permits, and wait until all the petes are ready for the
+			 * meeting
+			 */
+			flag = MeetingFlag.GATHERMEETING;
+			int permits = availableGatherPetes + availableBlackWorkPetes;
+			// initially 0 available
+			meetingMutex = new Semaphore(0, true);
+
+			// block untill all the petes are 'seated', which means; they have
+			// released a permit, simulating they have entered the meetingroom
+			meetingMutex.acquire(permits);
+			// set flag to announce to petes coming back from work they do not
+			// need to enter the queue
 			meetingInProgress = true;
-			
-			assert(availableGatherPetes>=3 && availableBlackWorkPetes >=1);
+			// Simulate having a meeting by sleeping the threads
+
+			// Thread sleep to simulate meeting
+			haveMeeting(Worktype.GATHERMEETING);
+
+			flag = MeetingFlag.NO_MEETING;
+			// Release those attending the meeting
+			meetingMutex.release(permits);
+			// Set meeting indicator false; from now on all petes will gather in
+			// queue
+			meetingInProgress = false;
+
+			assert (availableGatherPetes >= 3 && availableBlackWorkPetes >= 1);
 			workMutex.acquire();
 			if (availableBlackWorkPetes > 1) {
-				assert(availableBlackWorkPetes - 1 > 0);
-				//take only one black workpete to meeting
-				readyForWorkmeeting.release(availableBlackWorkPetes - 1);
-			} 
-			//Critical section; only the currently available (regular)petes should be released
+				assert (availableBlackWorkPetes - 1 > 0);
+				// take only one black workpete to meeting
+				readyForWorkmeetingBlack.release(availableBlackWorkPetes - 1);
+			}
+			// Critical section; only the currently available (regular)petes
+			// should be released
 			readyForWorkmeeting.release(availableWorkPetes);
-			
+
 			workMutex.release();
 			gatherMutex.acquire();
 			gatherPetesInMeeting = availableGatherPetes;
-			//send all gatherpetes into meeting
+			// send all gatherpetes into meeting
 			availableGatherPetes = 0;
 			gatherMutex.release();
 			// Attend the actual meeting
 			haveMeeting(Worktype.GATHERMEETING);
-			
+
 			// release all workpetes afterwards
 			workMutex.acquire();
-			//Just one black pete taken into meeting
-			readyForWorkmeeting.release(1);
+			// Just one black pete taken into meeting
+			readyForWorkmeetingBlack.release(1);
 			workMutex.release();
 			// release gatherpetes
+
 			gatherMutex.acquire();
 			readyForGathermeeting.release(gatherPetesInMeeting);
-			//reset counter
+			// reset counter
 			gatherPetesInMeeting = 0;
 			gatherMutex.release();
+
 			meetingInProgress = false;
 		}
 
@@ -206,7 +242,8 @@ public class SaintsMansion {
 		 */
 		private void haveMeeting(Worktype workmeeting) {
 			try {
-				int MAXDURATION = (int) (Math.random() * (MAX_MEETING_TIME * 1000)) + 5000;
+				int MAXDURATION = (int) (Math.random()
+						* (MAX_MEETING_TIME * 1000) + 5000);
 				System.err.println("The Saint has started a "
 						+ workmeeting.toString().toLowerCase()
 						+ ". This will take up to " + (MAXDURATION / 1000)
@@ -244,7 +281,7 @@ public class SaintsMansion {
 					System.err.println("Gatherpetes available: "
 							+ availableGatherPetes);
 					gatherMutex.release();
-					
+
 					// wake up the saint, let him check if meeting is
 					// possible! <-- avoid busy-waiting
 					saint.release();
@@ -283,26 +320,54 @@ public class SaintsMansion {
 					try {
 						if (this.isBlack()) {
 							workMutex.acquire();
-							assert(availableBlackWorkPetes + 1 <= NR_OF_WORKPETES/MOD_VALUE_BLACK_PETES);
+							assert (availableBlackWorkPetes + 1 <= NR_OF_WORKPETES
+									/ MOD_VALUE_BLACK_PETES);
 							availableBlackWorkPetes++;
 							workMutex.release();
 							System.err.println("Black Workpetes available: "
 									+ availableBlackWorkPetes);
+							// wake up the saint, let him check if meeting is
+							// possible!
+							saint.release();
+							// make it a non-blocking operation!
+							readyForWorkmeetingBlack.acquire();
 						} else if (!this.black) {
 							workMutex.acquire();
-							assert(availableWorkPetes <= NR_OF_WORKPETES - (NR_OF_WORKPETES/MOD_VALUE_BLACK_PETES));
+							assert (availableWorkPetes <= NR_OF_WORKPETES
+									- (NR_OF_WORKPETES / MOD_VALUE_BLACK_PETES));
 							availableWorkPetes++;
 							workMutex.release();
 							System.err.println("Regular Workpetes available: "
 									+ availableWorkPetes);
+							// wake up the saint, let him check if meeting is
+							// possible!
+							saint.release();
+							// make it a non-blocking operation!
+							readyForWorkmeeting.acquire();
 						}
-						// wake up the saint, let him check if meeting is possible!
-						saint.release();
-						//make it a non-blocking operation!
-						readyForWorkmeeting.acquire();
+						
+						//TODO NIEUW!
+						if (flag == MeetingFlag.GATHERMEETING) {
+							// attend Gathermeeting, acquire one permit as it is
+							// needed
+
+							// acquire a spot in the meeting
+
+							break;
+						} else if (flag == MeetingFlag.WORKMEETING) {
+							// attend workmeeting, acquire one permit as it is
+							// needed
+
+							// acquire a spot in the meeting
+
+							break;
+						}
+
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
+
+					// Of: meetingflag.no_meeting
 				} else {
 					System.out.println("Meeting already started, " + this
 							+ " is going to work again...");
@@ -328,5 +393,9 @@ public class SaintsMansion {
 	 */
 	enum Worktype {
 		WORKMEETING, GATHERMEETING
+	}
+
+	enum MeetingFlag {
+		WORKMEETING, GATHERMEETING, NO_MEETING
 	}
 }
