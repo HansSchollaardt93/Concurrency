@@ -132,6 +132,7 @@ public class SaintsMansion {
 			 * acquire the desired petes, here: all the workpetes black or not,
 			 * but NO gatherpetes
 			 */
+			
 			int workpetesInMeeting = availableBlackWorkPetes
 					+ availableWorkPetes;
 			assert (availableBlackWorkPetes + availableWorkPetes >= 3) : "a minimum of 3 workerpetes is required to start a workmeeting!";
@@ -150,6 +151,8 @@ public class SaintsMansion {
 			 */
 			readyForMeeting.release(availableBlackWorkPetes
 					+ availableGatherPetes + availableWorkPetes);
+			
+			
 			// reset the counters as all petes are released
 			counterMutex.acquire();
 			availableBlackWorkPetes = 0;
