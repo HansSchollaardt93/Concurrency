@@ -20,12 +20,14 @@ public class Saint extends UntypedActor {
 		joinedPetesList = new ArrayList<ActorRef>();
 	}
 
+	@Override
 	public void postStop() {
 		System.out.println("Saint actor exiting");
 	}
 
 	@Override
 	public void onReceive(Object message) throws Exception {
+		assert (message != null) : "Message cannot be null";
 		if (message instanceof MessageType) {
 			MessageType received_message = (MessageType) message;
 			switch (received_message) {
@@ -47,6 +49,7 @@ public class Saint extends UntypedActor {
 			case NOTIFY_JOINED_MEETING:
 				System.out.println("Nr " + joinedPetesList.size()
 						+ " has joined!");
+				assert (joinedPetesList != null);
 				joinedPetesList.add(getSender());
 				/*
 				 * check if all have joined the meeting; if so, start the
@@ -74,6 +77,7 @@ public class Saint extends UntypedActor {
 			}
 		} else if (message instanceof ArrayList<?>) {
 			invitationlist = (ArrayList<ActorRef>) message;
+			assert (invitationlist != null);
 			for (ActorRef toInvite : invitationlist) {
 				toInvite.tell(MessageType.JOIN_MEETING, getSelf());
 			}

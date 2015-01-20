@@ -1,6 +1,9 @@
 package enums;
 
 /**
+ * Enum with various types of Messages, to be passed from and to the Saint and
+ * pete
+ * 
  * @author Hans Schollaardt
  *
  */

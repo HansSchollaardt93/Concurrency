@@ -10,6 +10,8 @@ public abstract class Pete extends UntypedActor {
 	protected ActorRef saint;
 
 	public Pete(ActorRef admin, ActorRef saint) {
+		assert (admin != null) : "Admin needs to be initialized";
+		assert (saint != null) : "Saint needs to be initialized";
 		this.admin = admin;
 		this.saint = saint;
 		this.id = referenceId++;

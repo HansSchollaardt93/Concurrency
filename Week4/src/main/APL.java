@@ -19,18 +19,19 @@ import enums.MessageType;
  */
 public class APL {
 	// Constant values
-	public static final int NR_OF_GATHERPETES = 0,
-			NR_OF_NORMAL_WORKPETES = 10, NR_OF_BLACK_WORKPETES = 10,
-			MAX_MEETING_TIME = 10, MAX_WORKDURATION_GATHERPETES = 20,
-			MAX_WORKDURATION_WORKPETES = 40, MIN_WORKDURATION = 0;
+	public static final int NR_OF_GATHERPETES = 0, NR_OF_NORMAL_WORKPETES = 10,
+			NR_OF_BLACK_WORKPETES = 10, MAX_MEETING_TIME = 10,
+			MAX_WORKDURATION_GATHERPETES = 20, MAX_WORKDURATION_WORKPETES = 40,
+			MIN_WORKDURATION = 0;
 	// Minimum amount of petes needed to start a meeting
 	private static final int MIN_WORKPETES_NEEDED = 3,
 			MIN_GATHERPETES_NEEDED = 3;
-
+	// The system, boundary, in which the actors persist
 	private static ActorSystem system;
 
 	public static void main(String[] args) {
 		system = ActorSystem.create("saintsworkers");
+		assert (system != null);
 
 		// Create the pete actors
 		createActors();
@@ -44,6 +45,7 @@ public class APL {
 	 */
 	private static void createActors() {
 		ActorRef saint = system.actorOf(Props.create(Saint.class), "saint");
+		assert (saint != null) : "Without saint there's no use of running this application.";
 		ActorRef administratorPete = system.actorOf(
 				Props.create(AdministratorPete.class, saint),
 				"administrationPete");

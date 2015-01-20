@@ -8,6 +8,14 @@ import akka.actor.UntypedActor;
 import enums.MeetingType;
 import enums.MessageType;
 
+/**
+ * AdministratorPete; The pete that takes care of communicating with the saint,
+ * not to disturb him each time a pete is done working and wondering if a
+ * meeting is going to take place or not
+ * 
+ * @author Hans Schollaardt
+ *
+ */
 public class AdministratorPete extends UntypedActor {
 	private ArrayList<ActorRef> availableBlackWorkPetes,
 			availableRegularWorkPetes, availableGatherPetes;
@@ -16,8 +24,11 @@ public class AdministratorPete extends UntypedActor {
 	private boolean meetingInProgress;
 
 	/**
+	 * Public constructor of AdministratorPete. Takes care of initializing a few
+	 * lists and constant values, to be used elsewhere
 	 * 
 	 * @param saint
+	 *            The saint ActorRef to which the pete can talk to
 	 */
 	public AdministratorPete(ActorRef saint) {
 		this.saint = saint;
