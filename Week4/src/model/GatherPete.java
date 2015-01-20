@@ -6,8 +6,8 @@ import enums.MessageType;
 
 public class GatherPete extends Pete {
 
-	public GatherPete(ActorRef admin) {
-		super(admin);
+	public GatherPete(ActorRef admin, ActorRef saint) {
+		super(admin, saint);
 	}
 
 	@Override
@@ -33,7 +33,9 @@ public class GatherPete extends Pete {
 				admin.tell(MessageType.NOTIFY_AVAILABLE_GATHER, self());
 				break;
 			case JOIN_MEETING:
-				System.err.println("Called to join meeting");
+				System.err.println("Gatherpete " + getPeteId()
+						+ " called to join meeting");
+				saint.tell(MessageType.NOTIFY_JOINED_MEETING, getSelf());
 				break;
 			default:
 				unhandled(received_message);

@@ -56,16 +56,14 @@ public class AdministratorPete extends UntypedActor {
 					getSender()
 							.tell(MessageType.MEETING_IN_PROGRESS, getSelf());
 				}
+				break;
 			case NOTIFY_AVAILABLE_GATHER:
-				if (!meetingInProgress) {
-					availableGatherPetes.add(getSender());
-					System.err.println("Gatherpetes available: "
-							+ availableGatherPetes.size());
-					checkMeetingPossible();
-				} else {
-					getSender()
-							.tell(MessageType.MEETING_IN_PROGRESS, getSelf());
-				}
+
+				availableGatherPetes.add(getSender());
+				System.err.println("Gatherpetes available: "
+						+ availableGatherPetes.size());
+				checkMeetingPossible();
+
 				break;
 			case NOTIFY_MEETING_STARTED:
 				meetingInProgress = true;
@@ -81,7 +79,7 @@ public class AdministratorPete extends UntypedActor {
 	}
 
 	/**
-	 * Method to signal the Saint a meeting is possible
+	 * Method to signal the Saint a meeting is possible; sets a flag
 	 * 
 	 * @param type
 	 *            The type of meeting that is possible
@@ -110,17 +108,33 @@ public class AdministratorPete extends UntypedActor {
 	public void checkMeetingPossible() {
 		if (canHaveGatherMeeting()) {
 			ArrayList<ActorRef> toInvite = new ArrayList<ActorRef>();
-			ArrayList<ActorRef> tempBlack = (ArrayList<ActorRef>) availableBlackWorkPetes
-					.clone();
+			toInvite.add(availableBlackWorkPetes.get(0));
+			toInvite.addAll(availableGatherPetes);
 			// Get all petes that should join the meeting
-
-			// Release all that are left behind
 			notifyMeeting(MeetingType.GATHER_MEETING, toInvite);
+
+			for (ActorRef actorRef : availableRegularWorkPetes) {
+				// Get back to work, come back later
+				actorRef.tell(MessageType.WORK, getSelf());
+			}
+			for (int i = 1; i < availableBlackWorkPetes.size(); i++) {
+				availableBlackWorkPetes.get(i)
+						.tell(MessageType.WORK, getSelf());
+			}
+			// they're in meeting or sent back to work now
+			availableBlackWorkPetes.clear();
+			availableRegularWorkPetes.clear();
+			availableGatherPetes.clear();
+
 		} else if (canHaveWorkMeeting()) {
 			ArrayList<ActorRef> toInvite = new ArrayList<ActorRef>();
 			// Get all petes that should join the meeting
-
-			// Release all that are left behind
+			toInvite.addAll(availableBlackWorkPetes);
+			toInvite.addAll(availableRegularWorkPetes);
+			// They're in meeting now
+			availableBlackWorkPetes.clear();
+			availableRegularWorkPetes.clear();
+			// Available Gatherpetes will wait untill next meeting
 			notifyMeeting(MeetingType.WORK_MEETING, toInvite);
 		}
 	}

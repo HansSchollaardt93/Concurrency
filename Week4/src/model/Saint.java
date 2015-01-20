@@ -24,7 +24,6 @@ public class Saint extends UntypedActor {
 		System.out.println("Saint actor exiting");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof MessageType) {
@@ -46,13 +45,18 @@ public class Saint extends UntypedActor {
 
 				break;
 			case NOTIFY_JOINED_MEETING:
-				System.out.println(getSender().toString() + "Im inside");
+				System.out.println("Nr " + joinedPetesList.size()
+						+ " has joined!");
 				joinedPetesList.add(getSender());
 				/*
 				 * check if all have joined the meeting; if so, start the
 				 * meeting
 				 */
 				if (allJoinedMeeting()) {
+					System.err.println("-----------------------\n" + "All "
+							+ joinedPetesList.size()
+							+ " petes have joined the meeting"
+							+ "\n-----------------------");
 					adminpete.tell(MessageType.NOTIFY_MEETING_STARTED,
 							getSelf());
 					haveMeeting(meetingtype);
@@ -73,6 +77,10 @@ public class Saint extends UntypedActor {
 			for (ActorRef toInvite : invitationlist) {
 				toInvite.tell(MessageType.JOIN_MEETING, getSelf());
 			}
+			System.err.println("-----------------------\n"
+					+ "The saint has invited all " + invitationlist.size()
+					+ " petes to join the meeting"
+					+ "\n-----------------------");
 		}
 	}
 

@@ -6,8 +6,8 @@ import enums.MessageType;
 
 public class WorkPete extends Pete {
 
-	public WorkPete(ActorRef adminpete) {
-		super(adminpete);
+	public WorkPete(ActorRef adminpete, ActorRef saint) {
+		super(adminpete, saint);
 	}
 
 	@Override
@@ -33,7 +33,9 @@ public class WorkPete extends Pete {
 				admin.tell(MessageType.NOTIFY_AVAILABLE_WORK, self());
 				break;
 			case JOIN_MEETING:
-				System.err.println("Called to join meeting");
+				System.err.println("Regular workpete " + getPeteId()
+						+ " called to join meeting");
+				saint.tell(MessageType.NOTIFY_JOINED_MEETING, getSelf());
 				break;
 			default:
 				unhandled(received_message);

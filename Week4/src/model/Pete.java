@@ -7,9 +7,11 @@ public abstract class Pete extends UntypedActor {
 	private static int referenceId = 0;
 	protected int id;
 	protected ActorRef admin;
+	protected ActorRef saint;
 
-	public Pete(ActorRef admin) {
+	public Pete(ActorRef admin, ActorRef saint) {
 		this.admin = admin;
+		this.saint = saint;
 		this.id = referenceId++;
 	}
 

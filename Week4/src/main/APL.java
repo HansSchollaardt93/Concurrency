@@ -19,10 +19,10 @@ import enums.MessageType;
  */
 public class APL {
 	// Constant values
-	public static final int NR_OF_GATHERPETES = 10, NR_OF_NORMAL_WORKPETES = 5,
-			NR_OF_BLACK_WORKPETES = 2, MAX_MEETING_TIME = 20,
-			MAX_WORKDURATION_GATHERPETES = 40, MAX_WORKDURATION_WORKPETES = 20,
-			MIN_WORKDURATION = 5;
+	public static final int NR_OF_GATHERPETES = 0,
+			NR_OF_NORMAL_WORKPETES = 10, NR_OF_BLACK_WORKPETES = 10,
+			MAX_MEETING_TIME = 10, MAX_WORKDURATION_GATHERPETES = 20,
+			MAX_WORKDURATION_WORKPETES = 40, MIN_WORKDURATION = 0;
 	// Minimum amount of petes needed to start a meeting
 	private static final int MIN_WORKPETES_NEEDED = 3,
 			MIN_GATHERPETES_NEEDED = 3;
@@ -52,21 +52,21 @@ public class APL {
 
 		for (int i = 0; i < NR_OF_GATHERPETES; i++) {
 			ActorRef gatherpete = system.actorOf(
-					Props.create(GatherPete.class, administratorPete),
+					Props.create(GatherPete.class, administratorPete, saint),
 					"Gatherpete" + i);
 			gatherpete.tell(MessageType.WORK, null);
 		}
 		for (int i = 0; i < NR_OF_NORMAL_WORKPETES; i++) {
 			ActorRef workpete = system.actorOf(
-					Props.create(WorkPete.class, administratorPete), "Workpete"
-							+ i);
+					Props.create(WorkPete.class, administratorPete, saint),
+					"Workpete" + i);
 			workpete.tell(MessageType.WORK, null);
 		}
 
 		for (int i = 0; i < NR_OF_BLACK_WORKPETES; i++) {
-			ActorRef blackworkpete = system.actorOf(
-					Props.create(BlackWorkPete.class, administratorPete),
-					"BlackWorkpete" + i);
+			ActorRef blackworkpete = system
+					.actorOf(Props.create(BlackWorkPete.class,
+							administratorPete, saint), "BlackWorkpete" + i);
 			blackworkpete.tell(MessageType.WORK, null);
 		}
 	}
