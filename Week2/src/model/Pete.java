@@ -1,7 +1,7 @@
 package model;
 public abstract class Pete extends Thread {
 	protected String name;
-	private static int referenceId = 100;
+	private static int referenceId = 0;
 	protected int id;
 	
 	public Pete(String name) {

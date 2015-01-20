@@ -1,53 +1,79 @@
 package main;
 
+import model.AdministratorPete;
+import model.BlackWorkPete;
 import model.GatherPete;
 import model.Saint;
 import model.WorkPete;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import enums.MessageType;
 
 /**
+ * Main class which instantiates the running process of the Actor system, in
+ * which various Petes and one Saint live and carry out their work
  * 
  * @author Hans Schollaardt
  *
  */
 public class APL {
 	// Constant values
-	private static final int NR_OF_GATHERPETES = 20, NR_OF_WORKPETES = 8,
-			NR_OF_BLACK_GATHERPETES = 3, MAX_MEETING_TIME = 20,
+	public static final int NR_OF_GATHERPETES = 10, NR_OF_NORMAL_WORKPETES = 5,
+			NR_OF_BLACK_WORKPETES = 2, MAX_MEETING_TIME = 20,
 			MAX_WORKDURATION_GATHERPETES = 40, MAX_WORKDURATION_WORKPETES = 20,
 			MIN_WORKDURATION = 5;
-	// one in 'how-many' should be black petes?
-	private static final int MOD_VALUE_BLACK_PETES = 4,
-			MIN_WORKPETES_NEEDED = 3, MIN_GATHERPETES_NEEDED = 3;
+	// Minimum amount of petes needed to start a meeting
+	private static final int MIN_WORKPETES_NEEDED = 3,
+			MIN_GATHERPETES_NEEDED = 3;
 
 	private static ActorSystem system;
 
 	public static void main(String[] args) {
 		system = ActorSystem.create("saintsworkers");
-		ActorRef saint = system.actorOf(Props.create(Saint.class), "saint");
+
 		// Create the pete actors
 		createActors();
 	}
 
+	/**
+	 * Method for initiating the Actors in the system. Differentiates between 3
+	 * types of Petes; Regular workpetes, black workpetes and gatherpetes. Of
+	 * each a predefined constant amount are created, see instance variables on
+	 * top.
+	 */
 	private static void createActors() {
+		ActorRef saint = system.actorOf(Props.create(Saint.class), "saint");
+		ActorRef administratorPete = system.actorOf(
+				Props.create(AdministratorPete.class, saint),
+				"administrationPete");
+		// Make the saint aware of the presence of the administrator pete
+		saint.tell(MessageType.MEET_SAINT, administratorPete);
+
 		for (int i = 0; i < NR_OF_GATHERPETES; i++) {
 			ActorRef gatherpete = system.actorOf(
-					Props.create(GatherPete.class), "Gatherpete" + i);
+					Props.create(GatherPete.class, administratorPete),
+					"Gatherpete" + i);
+			gatherpete.tell(MessageType.WORK, null);
 		}
-		for (int i = 0; i < NR_OF_WORKPETES; i++) {
+		for (int i = 0; i < NR_OF_NORMAL_WORKPETES; i++) {
+			ActorRef workpete = system.actorOf(
+					Props.create(WorkPete.class, administratorPete), "Workpete"
+							+ i);
+			workpete.tell(MessageType.WORK, null);
+		}
 
-			// for one in n-petes, create a black pete
-			if (i % MOD_VALUE_BLACK_PETES == 0) {
-				ActorRef blackpete = system.actorOf(
-						Props.create(WorkPete.class), "Blackworkpete" + i);
-			} else {
-				ActorRef workpete = system.actorOf(
-						Props.create(WorkPete.class), "Workpete" + i);
-			}
+		for (int i = 0; i < NR_OF_BLACK_WORKPETES; i++) {
+			ActorRef blackworkpete = system.actorOf(
+					Props.create(BlackWorkPete.class, administratorPete),
+					"BlackWorkpete" + i);
+			blackworkpete.tell(MessageType.WORK, null);
 		}
 	}
+
+	/*
+	 * Various self explanatory getters below
+	 */
 
 	public static int getMinWorkduration() {
 		return MIN_WORKDURATION;
@@ -63,6 +89,14 @@ public class APL {
 
 	public static int getMaxMeetingTime() {
 		return MAX_MEETING_TIME;
+	}
+
+	public static int getMinGatherpetesNeeded() {
+		return MIN_GATHERPETES_NEEDED;
+	}
+
+	public static int getMinWorkpetesNeeded() {
+		return MIN_WORKPETES_NEEDED;
 	}
 
 }

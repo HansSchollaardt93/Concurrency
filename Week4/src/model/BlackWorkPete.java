@@ -4,20 +4,16 @@ import main.APL;
 import akka.actor.ActorRef;
 import enums.MessageType;
 
-public class WorkPete extends Pete {
+public class BlackWorkPete extends Pete {
 
-	public WorkPete(ActorRef adminpete) {
-		super(adminpete);
+	public BlackWorkPete(ActorRef admin) {
+		super(admin);
 	}
 
 	@Override
-	public void preStart() {
-		System.out.println("Workpete actor nr. " + (getPeteId())
+	public void preStart() throws Exception {
+		System.out.println("Black Workpete actor nr. " + (getPeteId())
 				+ " has started");
-	}
-
-	public void postStop() {
-		System.out.println("Workpete actor exiting");
 	}
 
 	@Override
@@ -30,15 +26,17 @@ public class WorkPete extends Pete {
 						.println("Meeting already started; going back to work");
 			case WORK:
 				doWork(APL.getMaxWorkdurationWorkpetes());
-				admin.tell(MessageType.NOTIFY_AVAILABLE_WORK, self());
+				admin.tell(MessageType.NOTIFY_AVAILABLE_BLACK, self());
 				break;
 			case JOIN_MEETING:
 				System.err.println("Called to join meeting");
 				break;
+
 			default:
 				unhandled(received_message);
 				break;
 			}
 		}
 	}
+
 }

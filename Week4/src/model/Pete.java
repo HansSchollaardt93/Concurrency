@@ -1,14 +1,15 @@
 package model;
 
+import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 
 public abstract class Pete extends UntypedActor {
-	protected String name;
-	private static int referenceId = 100;
+	private static int referenceId = 0;
 	protected int id;
+	protected ActorRef admin;
 
-	public Pete() {
-		this.name = name;
+	public Pete(ActorRef admin) {
+		this.admin = admin;
 		this.id = referenceId++;
 	}
 
@@ -37,7 +38,7 @@ public abstract class Pete extends UntypedActor {
 
 	@Override
 	public String toString() {
-		return "Pete with id: " + name;
+		return "Pete with id: " + id;
 	}
 
 }
